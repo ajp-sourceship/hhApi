@@ -1,15 +1,11 @@
-const express = require('express');
+import  express from 'express';
+import demo from './src/Apis/demo'
 
 const app = express();
 
-const bodyparser = require('body-parser');
-const demo = require('./Apis/demo')
-
 const port = process.env.PORT || 3200;
 
-app.use(bodyparser.json());
-app.use(bodyparser.urlencoded({extended: false}));
-
+app.use(express.json());
 app.use('/demo', demo)
 
 
