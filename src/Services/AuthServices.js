@@ -1,7 +1,8 @@
 import MongoClient from "mongodb";
 import dotenv from "dotenv/config";
 import bcrypt from 'bcrypt'
-import { response } from '';
+import JWT from 'jsonwebtoken'
+
 
 
 export const CreateUser = async (req) => {
@@ -53,11 +54,11 @@ export const Login = async (req) => {
             var dbo = db.db("gateslayer");
             var user = await dbo.collection("users").findOne({ username: req.body.username })
             if (user) {
+                const accessToken = JWT.sign({ username: user.username, _id: user._id }, process.env.TOKEN_SECRET);
                 var result = await bcrypt.compare(req.body.password, user.passwordSaltedHash)
                 if (result) {
-                    let genToken = '12345fs'
                     await dbo.collection("users").updateOne({ _id: user._id },
-                        { $set: { token: genToken } },
+                        { $set: { token: accessToken } },
                         (err, result) => {
                             if (err) throw err;
                             console.log(result);
@@ -66,7 +67,7 @@ export const Login = async (req) => {
                     return {
                         Status: 'Success',
                         Data: 'User Logged In.',
-                        Token: genToken
+                        Token: accessToken
                     }
                 }
                 else
@@ -85,22 +86,22 @@ export const Login = async (req) => {
 }
 
 export const IsAuthed = async (req) => {
-    return MongoClient.connect(process.env.DB_CONNECTION)
-        .then(async (db, err) => {
-            if (err) throw err;
-            var dbo = db.db("gateslayer");
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        let user = [];
+        JWT.verify(token, process.env.TOKEN_SECRET, (err, tokenUser) => {
+            user = tokenUser
+        });
 
-            dbo.collection("users").findOne({ username: req.body.username }, (err, result) => {
-                if (err) throw err;
-                db.close();
-            });
-        }).then(isAuthed => {
-            return {
-                Status: 'Success',
-                Data: 'User Authenticated Successfully.'
-            }
-        }
-        )
+        if (user)
+            return true
+        else
+            return false
+    } 
+    else 
+        return false
+    
 
 }
 
