@@ -2,10 +2,12 @@ import MongoClient from "mongodb";
 import dotenv from "dotenv/config";
 import bcrypt from 'bcrypt'
 import JWT from 'jsonwebtoken'
+import moment from "moment";
 
 
 
 export const CreateUser = async (req) => {
+    let returnVal = null;
     return MongoClient.connect(process.env.DB_CONNECTION)
         .then(async (db, err) => {
             if (err) throw err;
@@ -16,33 +18,36 @@ export const CreateUser = async (req) => {
             })
 
             if (userExsisting) {
-                return {
+                returnVal = {
                     Status: 'Error',
                     Data: 'Username or Email already registered'
                 }
             }
             else {
                 let saltRounds = 10;
-                bcrypt.hash(req.body.password, saltRounds)
-                    .then(hashed => {
-                        dbo.collection("users").insertOne({
-                            username: req.body.username,
-                            email: req.body.email,
-                            passwordSaltedHash: hashed,
-                            firstName: req.body.firstName,
-                            lastName: req.body.lastName,
-                        }, (err, result) => {
-                            if (err) throw err;
-                            console.log(result);
-                            db.close();
-                        });
-                        return {
-                            Status: 'Success',
-                            Data: 'New User ${req.body.username} Created'
-                        }
-                    })
+                let hashed = await bcrypt.hash(req.body.password, saltRounds)
+
+                dbo.collection("users").insertOne({
+                    username: req.body.username,
+                    email: req.body.email,
+                    passwordSaltedHash: hashed,
+                    firstName: req.body.firstName,
+                    lastName: req.body.lastName,
+                    createdDate: moment.utc().format('MM/DD/YYYY HH:mm:ss'),
+                    lastLogin: moment.utc().format('MM/DD/YYYY HH:mm:ss')
+                }, (err, result) => {
+                    if (err) throw err;
+                    console.log(result);
+                    db.close();
+                });
+                returnVal =  {
+                    Status: 'Success',
+                    Data: 'New User ${req.body.username} Created'
+                }
+
             }
             db.close();
+            return returnVal;
         });
 }
 
@@ -98,10 +103,10 @@ export const IsAuthed = async (req) => {
             return true
         else
             return false
-    } 
-    else 
+    }
+    else
         return false
-    
+
 
 }
 
