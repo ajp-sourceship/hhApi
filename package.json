@@ -1,5 +1,5 @@
 {
-  "name": "apier",
+  "name": "portalgunapi",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -17,6 +17,7 @@
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.1",
     "mongodb": "^3.6.0",
+    "mssql": "^6.3.0",
     "node-fetch": "^2.6.0"
   },
   "devDependencies": {

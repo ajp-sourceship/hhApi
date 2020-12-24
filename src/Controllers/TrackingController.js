@@ -10,7 +10,7 @@ import { AddGate, GetUserGates } from "../Services/GateService";
 
 
 
-router.post("/addGate", async (req, res) => {
+router.post("/getUserTrackings", async (req, res) => {
   var response = await AddGate(req)
   res.json(response);
 });

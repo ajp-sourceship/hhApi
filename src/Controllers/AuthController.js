@@ -5,15 +5,13 @@ const fetch = require("node-fetch");
 import MongoClient from "mongodb";
 import dotenv from "dotenv/config";
 import bcrypt from 'bcrypt'
-import { CreateUser, IsAuthed, Login } from "../Services/AuthServices";
-
-
+import { CreateUser, GetUserFromToken, GetUsers, IsAuthed, Login } from "../Services/AuthServices";
+import { GetUserData } from "../Services/AccountService";
 
 router.post("/createUser", async (req, res) => {
   var response = await CreateUser(req)
   res.json(response);
 });
-
 
 router.post("/login", async (req, res) => {
   var loginResponse = await Login(req)
@@ -21,9 +19,13 @@ router.post("/login", async (req, res) => {
   res.json(loginResponse);
 });
 
-
 router.post("/isAuthed", async (req, res) => {
   var response = await IsAuthed(req)
+  res.json(response);
+});
+
+router.post("/getUserData", async (req, res) => {
+  var response = await GetUserFromToken(req)
   res.json(response);
 });
 
