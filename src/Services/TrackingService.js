@@ -6,14 +6,17 @@ import moment from "moment";
 import globals from "../../globals";
 const sql = require('mssql')
 
-export const GetDeviceInfo = async (req) =>{
-    let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
-    let deviceName = req.body.deviceName;
-    // if(req.user.userData.userPermissions.includes(perm => perm.PermissionCode === 'GPSLIST'))
-    // {
-    try {
-        await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
-        const deviceInfo = await sql.query`
+export const GetDeviceInfo = async (req) => {
+    let isAuthed = req.user.userData.userPermissions.some(perm => perm.PermissionCode === 'GPSLIST');
+    if (isAuthed) {
+
+        let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
+        let deviceName = req.body.deviceName;
+        // if(req.user.userData.userPermissions.includes(perm => perm.PermissionCode === 'GPSLIST'))
+        // {
+        try {
+            await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
+            const deviceInfo = await sql.query`
         Declare @customerId int = ${customerId};
         With customerIds as ( 
             Select 
@@ -75,32 +78,29 @@ export const GetDeviceInfo = async (req) =>{
             ANd
             GPSDevice.DeviceName = ${deviceName}
 `
-        let returnVal = {
-            device: deviceInfo.recordset,
+            let returnVal = {
+                device: deviceInfo.recordset,
+            }
+            console.log(returnVal);
+            return returnVal
         }
-        console.log(returnVal);
-        return returnVal
+        catch (err) {
+            console.log(err);
+        }
     }
-    catch (err) {
-        console.log(err);
+    else {
+        console.log('fuck')
     }
-    // }
-    // else
-    // {
-    //     console.log('fuck')
-    // }
-
-
 }
 
 
 export const GetUserTrackings = async (req) => {
-    let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
-    // if(req.user.userData.userPermissions.includes(perm => perm.PermissionCode === 'GPSLIST'))
-    // {
-    try {
-        await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
-        const userTrackings = await sql.query`
+    let isAuthed = req.user.userData.userPermissions.some(perm => perm.PermissionCode === 'GPSLIST');
+    if (isAuthed) {
+        let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
+        try {
+            await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
+            const userTrackings = await sql.query`
         Declare @customerId int = ${customerId};
 
         With customerIds as ( 
@@ -193,32 +193,31 @@ export const GetUserTrackings = async (req) => {
             StatusId in (1, 2)
             Order By GPSTracking.TrackingId Desc `
 
-        console.log(userTrackings);
-        let returnVal = {
-            trackings: userTrackings.recordset,
+            console.log(userTrackings);
+            let returnVal = {
+                trackings: userTrackings.recordset,
+            }
+            console.log(returnVal);
+            return returnVal
         }
-        console.log(returnVal);
-        return returnVal
+        catch (err) {
+            console.log(err);
+        }
     }
-    catch (err) {
-        console.log(err);
+    else {
+        console.log('fuck')
     }
-    // }
-    // else
-    // {
-    //     console.log('fuck')
-    // }
 
 
 
 }
 export const GetTrackingInfo = async (req) => {
-    let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
-    // if(req.user.userData.userPermissions.includes(perm => perm.PermissionCode === 'GPSLIST'))
-    // {
-    try {
-        await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
-        const userTrackings = await sql.query`
+    let isAuthed = req.user.userData.userPermissions.some(perm => perm.PermissionCode === 'GPSLIST');
+    if (isAuthed) {
+        let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
+        try {
+            await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
+            const userTrackings = await sql.query`
         Declare @customerId int = ${customerId};
 
         With customerIds as ( 
@@ -308,8 +307,8 @@ export const GetTrackingInfo = async (req) => {
 
         where 
             GPSTracking.TrackingId = ${req.body.trackingId}`
-            
-        const trackingInfo = await sql.query`
+
+            const trackingInfo = await sql.query`
         Declare @customerId int = ${customerId};
         With customerIds as ( 
             Select 
@@ -402,32 +401,30 @@ export const GetTrackingInfo = async (req) => {
 			GPSTracking.TrackingId = ${req.body.trackingId}`
 
 
-        let returnVal = {
-            Pings: userTrackings.recordset,
-            TrackingInfo: trackingInfo.recordset
+            let returnVal = {
+                Pings: userTrackings.recordset,
+                TrackingInfo: trackingInfo.recordset
+            }
+            console.log(returnVal);
+            return returnVal
         }
-        console.log(returnVal);
-        return returnVal
+        catch (err) {
+            console.log(err);
+        }
     }
-    catch (err) {
-        console.log(err);
+    else {
+        console.log('fuck')
     }
-    // }
-    // else
-    // {
-    //     console.log('fuck')
-    // }
-
-
-
 }
 export const GetDevices = async (req) => {
-    let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
-    // if(req.user.userData.userPermissions.includes(perm => perm.PermissionCode === 'GPSLIST'))
-    // {
-    try {
-        await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
-        const devices = await sql.query`
+    let isAuthed = req.user.userData.userPermissions.some(perm => perm.PermissionCode === 'GPSLIST');
+    if (isAuthed) {
+        let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
+        // if(req.user.userData.userPermissions.includes(perm => perm.PermissionCode === 'GPSLIST'))
+        // {
+        try {
+            await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
+            const devices = await sql.query`
         Declare @customerId int = ${customerId};
 With customerIds as ( 
     Select 
@@ -487,32 +484,34 @@ where
 	GPSDevice.IsActive = 1`
 
 
-        let returnVal = {
-            Devices: devices.recordset,
+            let returnVal = {
+                Devices: devices.recordset,
+            }
+            console.log(returnVal);
+            return returnVal
         }
-        console.log(returnVal);
-        return returnVal
+        catch (err) {
+            console.log(err);
+        }
     }
-    catch (err) {
-        console.log(err);
+    else {
+        console.log('fuck')
     }
-    // }
-    // else
-    // {
-    //     console.log('fuck')
-    // }
 
 
 
 }
 
 export const GetTrackingFilters = async (req) => {
-    let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
-    // if(req.user.userData.userPermissions.includes(perm => perm.PermissionCode === 'GPSLIST'))
-    // {
-    try {
-        await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
- const customerDropdown = await sql.query`
+    let isAuthed = req.user.userData.userPermissions.some(perm => perm.PermissionCode === 'GPSLIST');
+    if (isAuthed) {
+
+        let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
+        // if(req.user.userData.userPermissions.includes(perm => perm.PermissionCode === 'GPSLIST'))
+        // {
+        try {
+            await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
+            const customerDropdown = await sql.query`
  Declare @customerId int = ${customerId};
 
  
@@ -547,21 +546,20 @@ export const GetTrackingFilters = async (req) => {
      Customer.CustomerId = @customerId
 `
 
-        console.log(userTrackings);
-        let returnVal = {
-            trackings: userTrackings.recordset,
+            console.log(userTrackings);
+            let returnVal = {
+                trackings: userTrackings.recordset,
+            }
+            console.log(returnVal);
+            return returnVal
         }
-        console.log(returnVal);
-        return returnVal
+        catch (err) {
+            console.log(err);
+        }
     }
-    catch (err) {
-        console.log(err);
+    else {
+        console.log('fuck')
     }
-    // }
-    // else
-    // {
-    //     console.log('fuck')
-    // }
 
 
 

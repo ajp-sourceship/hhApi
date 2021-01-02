@@ -8,9 +8,9 @@ const sql = require('mssql')
 
 
 export const GetAdminLanternManifests = async (req) => {
-    try {
-        await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
-        const userTrackings = await sql.query`
+       try {
+              await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
+              const userTrackings = await sql.query`
         Declare @customerId int = ${customerId};
 
         With customerIds as ( 
@@ -102,31 +102,32 @@ export const GetAdminLanternManifests = async (req) => {
         where 
             StatusId in (1, 2) `
 
-        console.log(userTrackings);
-        let returnVal = {
-            trackings: userTrackings.recordset,
-        }
-        console.log(returnVal);
-        return returnVal
-    }
-    catch (err) {
-        console.log(err);
-    }
-    // }
-    // else
-    // {
-    //     console.log('fuck')
-    // }
+              console.log(userTrackings);
+              let returnVal = {
+                     trackings: userTrackings.recordset,
+              }
+              console.log(returnVal);
+              return returnVal
+       }
+       catch (err) {
+              console.log(err);
+       }
+       // }
+       // else
+       // {
+       //     console.log('fuck')
+       // }
 
 
 
 }
 export const GetTrackingInfo = async (req) => {
-    let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
-    if (req.user.userData.userPermissions.includes(perm => perm.PermissionCode === 'GPSLIST')) {
-        try {
-            await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
-            const adminsManifests = await sql.query`
+       let isAuthed = req.user.userData.userPermissions.some(perm => perm.PermissionCode === 'GPSLIST');
+       if (isAuthed) {
+              let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
+              try {
+                     await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
+                     const adminsManifests = await sql.query`
         Declare @customerId int = ${customerId};
 
                 With customerIds as ( 
@@ -193,7 +194,7 @@ export const GetTrackingInfo = async (req) => {
 
                 Select * From UsersLanternItems;
         `
-            const adminParcels = await sql.query`
+                     const adminParcels = await sql.query`
         Declare @customerId int = ${customerId};
 
         With customerIds as ( 
@@ -292,7 +293,7 @@ export const GetTrackingInfo = async (req) => {
 Order By 
 UsersLanternItems.CreatedDateTime
         `
-            const adminDailyRoute = await sql.query`
+                     const adminDailyRoute = await sql.query`
         Declare @customerId int = ${customerId};
 With customerIds as ( 
        Select 
@@ -385,29 +386,31 @@ Order By
 		UsersLanternManifest.pingDateTime
 
         `
-            let returnVal = {
-                Manifests: adminsManifests.recordset,
-                Parcels: adminParcels.recordset,
-                Route: adminDailyRoute.recordset
-            }
-            return returnVal
-        }
-        catch (err) {
-            console.log(err);
-        }
-    }
-    else {
-        console.log('fuck')
-    }
+                     let returnVal = {
+                            Manifests: adminsManifests.recordset,
+                            Parcels: adminParcels.recordset,
+                            Route: adminDailyRoute.recordset
+                     }
+                     return returnVal
+              }
+              catch (err) {
+                     console.log(err);
+              }
+       }
+       else {
+              console.log('fuck')
+       }
 }
 
 
 export const GetAllManifests = async (req) => {
-    let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
-    // if (req.user.userData.userPermissions.includes(perm => perm.PermissionCode === 'LANTERNADMIN')) {
-        try {
-            await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
-            const userTrackings = await sql.query`
+       let isAuthed = req.user.userData.userPermissions.some(perm => perm.PermissionCode === 'GPSLIST');
+       if (isAuthed) {
+              let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
+              // if (req.user.userData.userPermissions.includes(perm => perm.PermissionCode === 'LANTERNADMIN')) {
+              try {
+                     await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
+                     const userTrackings = await sql.query`
         Declare @customerId int = ${customerId};
         With customerIds as ( 
                Select 
@@ -473,30 +476,29 @@ export const GetAllManifests = async (req) => {
 				Order By 
 					UsersLanternManifest.LanternManifestId Desc;`
 
-            return userTrackings.recordset
-        }
-        catch (err) {
-            console.log(err);
-        }
-    // }
-    // else {
-    //     console.log('fuck')
-    // }
-
-
-
+                     return userTrackings.recordset
+              }
+              catch (err) {
+                     console.log(err);
+              }
+       }
+       else {
+              console.log('fuck')
+       }
 }
 
 
 
 export const GetManifest = async (req) => {
-    let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
-    // if(req.user.userData.userPermissions.includes(perm => perm.PermissionCode === 'GPSLIST'))
-    // {
-    try {
-        let manId = req.body.manifestId
-        await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
-        const manifest = await sql.query`
+       let isAuthed = req.user.userData.userPermissions.some(perm => perm.PermissionCode === 'GPSLIST');
+       if (isAuthed) {
+              let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
+              // if(req.user.userData.userPermissions.includes(perm => perm.PermissionCode === 'GPSLIST'))
+              // {
+              try {
+                     let manId = req.body.manifestId
+                     await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
+                     const manifest = await sql.query`
         Declare @customerId int = ${customerId};
 
         With customerIds as ( 
@@ -565,7 +567,7 @@ export const GetManifest = async (req) => {
         Select * From UsersLanternItems;`
 
 
-        const parcels = await sql.query`
+                     const parcels = await sql.query`
         Declare @customerId int = ${customerId};
 
         With customerIds as ( 
@@ -666,7 +668,7 @@ export const GetManifest = async (req) => {
         `
 
 
-        const route = await sql.query`
+                     const route = await sql.query`
         Declare @customerId int = ${customerId};
         With customerIds as ( 
                Select 
@@ -761,26 +763,22 @@ export const GetManifest = async (req) => {
         `
 
 
-        let returnVal = {
-            Manifest: manifest.recordset,
-            Parcels: parcels.recordset,
-            Route: route.recordset
-        }
-        console.log(returnVal)
+                     let returnVal = {
+                            Manifest: manifest.recordset,
+                            Parcels: parcels.recordset,
+                            Route: route.recordset
+                     }
+                     console.log(returnVal)
 
-        return returnVal
-    }
-    catch (err) {
-        console.log(err);
-    }
-    // }
-    // else
-    // {
-    //     console.log('fuck')
-    // }
-
-
-
+                     return returnVal
+              }
+              catch (err) {
+                     console.log(err);
+              }
+       }
+       else {
+              console.log('fuck')
+       }
 }
 
 
