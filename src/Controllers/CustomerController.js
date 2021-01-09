@@ -1,17 +1,12 @@
 const express = require("express");
 const router = express.Router();
 
-import { AddCustomer, GetCustomers } from "../Services/CustomerService";
+import {GetUserFromToken } from "../Services/AuthServices";
+import { AddCustomer, GetCustomerLocations, GetCustomers } from "../Services/CustomerService";
 
-
-
-router.post("/addCustomer", async (req, res) => {
-  var response = await AddCustomer(req)
-  res.json(response);
-});
-
-router.post("/getCustomers", async (req, res) => {
-    var response = await GetCustomers(req)
+  router.post("/getCustomerLocations", async (req, res) => {
+    req.user = await GetUserFromToken(req)
+    var response = await GetCustomerLocations(req)
     res.json(response);
   });
 

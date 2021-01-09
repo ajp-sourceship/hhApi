@@ -1,73 +1,62 @@
-import MongoClient from "mongodb";
-import dotenv from "dotenv/config";
-import bcrypt from 'bcrypt'
-import JWT from 'jsonwebtoken'
 import moment from "moment";
+const sql = require('mssql')
 
 
 
-export const AddCustomer = async (req) => {
-    let returnVal = null;
-    return MongoClient.connect(process.env.DB_CONNECTION)
-        .then(async (db, err) => {
-            if (err) throw err;
-            var dbo = db.db("gateslayer");
-            var gateExsisting = await dbo.collection('customers').findOne({
-                gateName: req.body.gateName,
-                gateCellNumber: req.body.gateCellNumber
-            })
 
-            if (gateExsisting) {
-                returnVal = {
-                    Status: 'Error',
-                    Data: 'Gate Name or Cell is already registered'
-                }
-            }
-            else {
-                dbo.collection("customers").insertOne({
-                    customerName: req.body.customerName,
-                    createdDate: moment.utc().format('MM/DD/YYYY HH:mm:ss')
-                }, (err, result) => {
-                    if (err) throw err;
-                    console.log(result);
-                    db.close();
-                });
-                returnVal = {
-                    Status: 'Success',
-                    Data: 'New User ${req.body.username} Created'
-                }
+export const GetCustomerLocations = async (req) => {
+    let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
+    await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
 
-            }
-            db.close();
-            return returnVal;
-        });
+    const locations = await sql.query`
+    Declare @customerId int = ${customerId};
+
+    With customerIds as ( 
+        Select 
+            Customer.CustomerId,
+            Customer.CustomerKey,
+            Customer.CustomerName,
+            Customer.MarkerColor,
+            Customer.BusinessUnit,
+            Customer.CustomerRegion,
+            Customer.CustomerId CrossRefId
+        from 
+            Customer 
+        where 
+            Customer.CustomerId = @customerId
+        Union
+        Select 
+            Customer.CustomerId,
+            Child.CustomerKey,
+            Child.CustomerName,
+            Child.MarkerColor,
+            Child.BusinessUnit,
+            Child.CustomerRegion,
+            CustomerCrossRef.CrossRefId 
+        from 
+            Customer 
+            Join CustomerCrossRef on 
+                Customer.CustomerId = CustomerCrossRef.CustomerId
+            Join Customer Child on 
+                CustomerCrossRef.CrossRefId = Child.CustomerId
+        where 
+            Customer.CustomerId = @customerId
+    )
+    Select 
+        GPSTrackingLocation.LocationId,
+        GPSTrackingLocation.LocationName, 
+        GPSTrackingLocation.Address, 
+        GPSTrackingLocation.City,
+        GPSTrackingLocation.State,
+        GPSTrackingLocation.PostalCode,
+        GPSTrackingLocation.Latitude, 
+        GPSTrackingLocation.Longitude
+        From GPSTrackingLocation 
+        Join customerIds on GPSTrackingLocation.CustomerId = customerIds.CrossRefId
+            `
+    let returnVal = {
+        Locations: locations.recordset
+    }
+    return returnVal
+
 }
-
-
-export const GetCustomers = async (req) => {
-    let returnVal = null;
-    return MongoClient.connect(process.env.DB_CONNECTION)
-        .then(async (db, err) => {
-            var dbo = db.db("gateslayer");
-            let result = await dbo.collection("customers").find({ departmentId: 0 }).toArray()
-            returnVal = {
-                Status: 'Success',
-                Data: result
-            }
-
-            console.log(result);
-            db.close();
-            return returnVal;
-        }, (err, result) => {
-            if (err) throw err;
-            console.log(result);
-            returnVal = {
-                Status: 'Error',
-                Data: result
-            }
-            db.close();
-            return returnVal
-        });
-}
-
-

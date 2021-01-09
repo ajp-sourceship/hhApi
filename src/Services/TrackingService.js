@@ -217,7 +217,7 @@ export const GetTrackingInfo = async (req) => {
         let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
         try {
             await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
-            const userTrackings = await sql.query`
+            const pings = await sql.query`
         Declare @customerId int = ${customerId};
 
         With customerIds as ( 
@@ -402,7 +402,7 @@ export const GetTrackingInfo = async (req) => {
 
 
             let returnVal = {
-                Pings: userTrackings.recordset,
+                Pings: pings.recordset,
                 TrackingInfo: trackingInfo.recordset
             }
             console.log(returnVal);

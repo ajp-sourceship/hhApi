@@ -5,6 +5,7 @@ import TrackingController from './src/Controllers/TrackingController'
 import CustomerControler from './src/Controllers/CustomerController'
 import AccountController from './src/Controllers/AccountController'
 import LanternController from './src/Controllers/LanternController'
+import ResourceController from './src/Controllers/ResourceController'
 var cors = require('cors')
 const app = express();
 
@@ -18,6 +19,7 @@ app.use('/tracking', TrackingController)
 app.use('/customer', CustomerControler)
 app.use('/account', AccountController)
 app.use('/lantern', LanternController)
+app.use('/resource', ResourceController )
 
 
 app.listen(port, () => {
