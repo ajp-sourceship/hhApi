@@ -7,7 +7,7 @@ import MongoClient from "mongodb";
 import dotenv from "dotenv/config";
 import bcrypt from 'bcrypt'
 import { CreateUser, GetUserFromToken, IsAuthed, Login } from "../Services/AuthServices";
-import { GetTrackingInfo, GetUserTrackings, GetDevices, GetDeviceInfo } from "../Services/TrackingService";
+import { GetTrackingInfo, GetUserTrackings, GetDevices, GetDeviceInfo, GetMonitoringList } from "../Services/TrackingService";
 
 
 
@@ -35,6 +35,11 @@ router.post("/getdevices", async (req, res) => {
 router.post("/getdeviceinfo", async (req, res) => {
   req.user = await GetUserFromToken(req);
   var response = await GetDeviceInfo(req)
+  res.json(response);
+});
+router.post("/getMonitoringList", async (req, res) => {
+  req.user = await GetUserFromToken(req);
+  var response = await GetMonitoringList(req)
   res.json(response);
 });
 

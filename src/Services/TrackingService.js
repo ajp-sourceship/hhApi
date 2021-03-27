@@ -565,3 +565,143 @@ export const GetTrackingFilters = async (req) => {
 
 }
 
+
+
+export const GetMonitoringList = async (req) => {
+    let isAuthed = req.user.userData.userPermissions.some(perm => perm.PermissionCode === 'GPSLIST');
+    if (isAuthed) {
+
+        let customerId = req.user.userData.userInfo[0].CustomerImpersonationId;
+        // if(req.user.userData.userPermissions.includes(perm => perm.PermissionCode === 'GPSLIST'))
+        // {
+        try {
+            await sql.connect('data source=asisprod.cwoxb7ccwa4v.us-east-1.rds.amazonaws.com,1433;initial catalog=ASISPortal;user id=asisportaluser;password=Azapuki9;MultipleActiveResultSets=True;')
+            const monitoringList = await sql.query`
+            with trackings as 
+            (
+                Select 
+                    GPSTracking.TrackingId TrackingId,
+                    GPSTracking.TrackingCustomerName TrackingCustomerName,
+                    GPSTracking.DateAdded RequestDate,
+                    GPSTracking.DepartureLocationName DepartureLocation,
+                    GPSTracking.DepartueDate DepartureDate ,
+                    GPSTracking.DepartueDate DepartureDateUTC,
+                    GPSTracking.DestinationLocationName FinalDestinationLocation,
+                    GPSTracking.DestinationDate FinalDestinationDate,
+                    GPSTracking.DestinationDate FinalDestinationDateUTC ,
+                    GPSTracking.StatusId StatusId,
+                    GPSTrackingStatus.StatusName StatusName,
+                    Customer.CustomerName CustomerName,
+                    GPSTracking.CustomerId CustomerId,
+                    GPSTracking.UpdateFrequency UpdateFrequency,
+                    GPSTracking.SOPSUpdateFrequency SOPSUpdateFrequency,
+                    GPSTracking.DevicePingFrequency DevicePingFrequency,
+                    Case when GPSTracking.DeviceId > 0 then GPSDeviceType.DeviceTypeName + ': ' + GPSDevice.DeviceName else '' end FullDeviceName,
+                    isNull(GPSDevice.PingRate, -1) PingRate
+                From
+
+                    GPSTracking
+                    Join Customer on
+
+                        GPSTracking.CustomerId = Customer.CustomerId
+                    Join GPSTrackingStatus on
+
+                        GPSTracking.StatusId = GPSTrackingStatus.StatusId
+                    Join GPSDevice on
+
+                        GPSTracking.DeviceId = GPSDevice.DeviceId
+                    Join GPSDeviceType on
+
+                        GPSDevice.DeviceTypeId = GPSDeviceType.DeviceTypeId
+
+                where
+
+                    GPSTracking.StatusId in (1,2)
+            ),
+            lastEvents as 
+            (
+                Select
+                    trackings.TrackingId,
+                    Max(ISNULL(GPSTrackingEvent.TrackingEventId, 0)) LastTracking,
+                    Max(Case when GPSTrackingEvent.CustomerUpdated = 1 then GPSTrackingEvent.TrackingEventId else 0 end ) LastEmailTracking
+                From
+
+                    trackings
+                    Left Join GPSTrackingEvent on
+                        trackings.TrackingId = GPSTrackingEvent.TrackingId  and
+                        GPSTrackingEvent.AddedById <> 1018  
+                    
+                Group by
+                    trackings.TrackingId
+            )
+            Select
+                trackings.TrackingId,
+                trackings.TrackingCustomerName,
+                trackings.RequestDate,
+                trackings.DepartureLocation,
+                trackings.DepartureDate ,
+                trackings.DepartureDateUTC,
+                trackings.FinalDestinationLocation,
+                trackings.FinalDestinationDate,
+                trackings.FinalDestinationDateUTC ,
+                trackings.StatusId,
+                trackings.StatusName,
+                LastUpdate.TrackingEventId LastUpdateEventId,
+                LastUpdate.AddedDate LastEventDate,
+                LastUpdate.AddedDate LastEventDateUTC,
+                LastUpdate.EventTypeId LastEventTypeId,
+                LastUpdateType.EventTypeName LastEventTypeName,
+                LastUpdate.AddedByFullName LastEventTypeBy,
+                'SOPS' LastEventType,
+                LastEmailSent.TrackingEventId LastEmailSentEventId,
+                LastEmailSent.AddedDate LastCustomerEmailEventDate,
+                LastEmailSent.AddedDate LastCustomerEmailEventDateUTC,
+                LastEmailSent.EventTypeId LastCustomerEmailEventTypeId,
+                LastEmailSentType.EventTypeName LastCustomerEmailEventTypeName,
+                LastEmailSent.AddedByFullName LastCustomerEmailEventTypeBy,
+                'Email' LastCustomerEmailEventType,
+                trackings.CustomerName,
+                trackings.CustomerId,
+                trackings.UpdateFrequency,
+                trackings.SOPSUpdateFrequency,
+                trackings.DevicePingFrequency,
+                trackings.FullDeviceName,
+                trackings.PingRate
+            from
+                trackings
+                Join lastEvents on
+
+                    trackings.TrackingId = lastEvents.TrackingId
+
+                Left Join GPSTrackingEvent LastUpdate on
+                    lastEvents.LastTracking = LastUpdate.TrackingEventId
+
+                Left Join GPSTrackingEventType LastUpdateType on
+                    LastUpdate.EventTypeId = LastUpdateType.EventTypeId
+
+                Left Join GPSTrackingEvent LastEmailSent on
+                    lastEvents.LastEmailTracking = LastEmailSent.TrackingEventId
+
+                Left Join GPSTrackingEventType LastEmailSentType on
+                    LastEmailSent.EventTypeId = LastEmailSentType.EventTypeId
+
+            `
+            let returnVal = {
+                Monitoring: monitoringList.recordset,
+            }
+            console.log(returnVal);
+            return returnVal
+        }
+        catch (err) {
+            console.log(err);
+        }
+    }
+    else {
+        console.log('fuck')
+    }
+
+
+
+}
+
+
