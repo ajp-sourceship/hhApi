@@ -10,7 +10,7 @@ app.use(express.json());
 app.use('/color', ColorController)
 
 
-const port = process.env.port || 8081;
+const port = process.env.PORT || 8081;
 
 app.listen(port, () => {
     console.log(`running on port ${port}`);
