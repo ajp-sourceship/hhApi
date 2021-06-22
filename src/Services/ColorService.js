@@ -13,23 +13,28 @@ export const GetColors = async (username) => {
 	`;
 
   let returnVal = {
-    colors: colors.recordset,
+    colors: colorInfo.recordset,
   };
   return returnVal;
 };
 
 export const InsertColor = async (req) => {
-  await sql.connect(
+  console.log(req)
+  let pool = await sql.connect(
     "data source=color-database.cneyddwe6evi.us-east-1.rds.amazonaws.com;initial catalog=ColorDb;user id=colorUser;password=Purple99!;MultipleActiveResultSets=True;"
   );
-  let hexStr = req.body.hexStr;
-  const accountList = await sql.query`
+  const dbrequest = pool
+    .request()
+    .input("hexString", sql.VarChar, req.body.hexString)
+    .input("colorName", sql.VarChar, req.body.colorName).query(`
    Insert Into
-   Color(hexString)
-   Values(${hexStr})
-            `;
-  let returnVal = {
-    accounts: accountList.recordset,
+   Color(hexString, colorName)
+   Values(@hexString, @colorName)
+            `);
+
+  let response = {
+    Status: "Success",
   };
-  return returnVal;
+
+  return response;
 };

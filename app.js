@@ -8,7 +8,7 @@ const port = process.env.PORT || 3200;
 
 app.use(cors())
 app.use(express.json());
-app.use('/account', ColorController)
+app.use('/color', ColorController)
 
 
 
