@@ -31,6 +31,7 @@ export const InsertColor = async (req) => {
    Color(hexString, colorName)
    Values(@hexString, @colorName)
             `);
+            
 
   let response = {
     Status: "Success",
