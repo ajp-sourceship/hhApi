@@ -1,1 +1,1 @@
-web: npm deploy
+web: nodemon --exec babel-node app.js
