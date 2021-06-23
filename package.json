@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon --exec babel-node app.js",
-    "deploy": "npm run start"
+    "deploy": "babel-node app.js"
 
   },
   "keywords": [],
