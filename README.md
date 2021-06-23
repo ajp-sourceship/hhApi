@@ -13,5 +13,10 @@ What Went on:
 
 Front End url: https://main.ddaonjar68sjt.amplifyapp.com/
 
+### Front End url: https://main.ddaonjar68sjt.amplifyapp.com/
+### Video of Working App: https://drive.google.com/file/d/1sldJG_ECZl6OFD1t33sF7aMtghIHO6WV/view?usp=sharing
+### Speed Run Trials: https://drive.google.com/file/d/1uDkR852YmoumGaxJLhv9K-AkNHzF3-J9/view?usp=sharing
+
+
 Whats Missing 
 Deployment Errors for Express Backend - node is not starting in prod
